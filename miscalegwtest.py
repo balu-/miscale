@@ -5,16 +5,10 @@ import binascii
 import os
 import sys
 from bluepy import btle
-import paho.mqtt.client as mqtt
 
-height = 173 # height in cm
+height = 180 # height in cm
 
-MISCALE_MAC = 'MI:SC:AL:EM:AC:AD'
-MQTT_USERNAME = 'username'
-MQTT_PASSWORD = 'password'
-MQTT_HOST = 'ho.st.ip.add'
-MQTT_PORT = 1883
-MQTT_TIMEOUT = 60
+MISCALE_MAC = '0C:95:41:AA:44:A1'
 
 global bmi
 global water
@@ -45,9 +39,7 @@ else:
 class ScanProcessor():
 
     def __init__(self):
-        self.mqtt_client = None
-        self.connected = False
-        self._start_client()
+        pass
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
         if dev.addr == MISCALE_MAC.lower() and isNewDev:
@@ -71,7 +63,7 @@ class ScanProcessor():
                     if measunit.startswith(('22', 'a2')): unit = 'kg' ; measured = measured / 2
                     bmi = (measured / (height*height))*10000
                     water = 0.72 * (-1.976 + 0.907 * measured)
-                    fat = (1.281* bmi) - 10.13 
+                    fat = (1.281* bmi) - 10.13
                     leanfat = measured - fat
 
                     if unit:
@@ -84,28 +76,13 @@ class ScanProcessor():
                 print ('\t(no data)')
             print
 
-    def _start_client(self):
-        self.mqtt_client = mqtt.Client()
-        self.mqtt_client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
-
-        def _on_connect(client, _, flags, return_code):
-            self.connected = True
-            print("MQTT connection returned result: %s" % mqtt.connack_string(return_code))
-
-        self.mqtt_client.on_connect = _on_connect
-
-        self.mqtt_client.connect(MQTT_HOST, MQTT_PORT, MQTT_TIMEOUT)
-        self.mqtt_client.loop_start()
-
     def _publish(self, weight, unit, bmi, water, fat, leanfat):
-        if not self.connected:
-            raise Exception('not connected to MQTT server')
         prefix = '{}/{}'.format('miscale/weight', unit)
-        self.mqtt_client.publish(prefix, weight, qos=1, retain=True)
-        self.mqtt_client.publish('miscale/bmi', bmi, qos=1, retain=True)
-        self.mqtt_client.publish('miscale/fat', fat, qos=1, retain=True)
-        self.mqtt_client.publish('miscale/water', water, qos=1, retain=True)
-        self.mqtt_client.publish('miscale/leanfat', leanfat, qos=1, retain=True)
+        #self.mqtt_client.publish(prefix, weight, qos=1, retain=True)
+        #self.mqtt_client.publish('miscale/bmi', bmi, qos=1, retain=True)
+        #self.mqtt_client.publish('miscale/fat', fat, qos=1, retain=True)
+        #self.mqtt_client.publish('miscale/water', water, qos=1, retain=True)
+        #self.mqtt_client.publish('miscale/leanfat', leanfat, qos=1, retain=True)
         print('\tSent data to topic %s: %s %s' % (prefix, weight, unit))
         print('\tSent data to topic miscale/bmi: %s ' % (bmi))
         print('\tSent data to topic miscale/fat: %s ' % (fat))
