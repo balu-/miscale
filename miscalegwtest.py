@@ -8,7 +8,7 @@ from bluepy import btle
 
 height = 180 # height in cm
 
-MISCALE_MAC = '0C:95:41:AA:44:A1'
+MISCALE_MAC = 'AA:BB:CC:DD'
 
 global bmi
 global water
